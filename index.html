@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DMC 445 · 循轨光学选钻工坊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css?v=5.3" />
+</head>
+<body class="mode-gallery">
+  <!-- Shared Optical SVG Gradients (eliminates 445 duplicate SVG <defs> IDs) -->
+  <svg class="sr-only" aria-hidden="true" focusable="false">
+    <defs>
+      <radialGradient id="aoShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(6,10,18,0.52)" />
+        <stop offset="68%" stop-color="rgba(8,12,22,0.28)" />
+        <stop offset="100%" stop-color="rgba(8,12,22,0.0)" />
+      </radialGradient>
+      <radialGradient id="prismFire" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.65)" />
+        <stop offset="45%" stop-color="rgba(255,232,168,0.34)" />
+        <stop offset="78%" stop-color="rgba(125,218,255,0.24)" />
+        <stop offset="100%" stop-color="rgba(192,132,252,0.0)" />
+      </radialGradient>
+      <linearGradient id="softboxSheen" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.34)" />
+        <stop offset="48%" stop-color="rgba(255,255,255,0.04)" />
+        <stop offset="100%" stop-color="rgba(0,0,0,0.12)" />
+      </linearGradient>
+    </defs>
+  </svg>
+  <!-- Subtle architectural film grain (HUB-UI Optical Materiality) -->
+  <div class="hub-grain" aria-hidden="true"></div>
+
+  <div class="app-root" id="appRoot">
+    <!-- Minimal Floating Obsidian Glass Topbar -->
+    <header class="sim-toolbar" id="topBar">
+      <div class="sim-toolbar__left">
+        <div class="brand-emblem" aria-hidden="true">
+          <img src="./assets/webgradients-icon.png" alt="" class="sim-toolbar__icon" />
+        </div>
+        <div class="brand-copy">
+          <div class="brand-title-row">
+            <strong class="sim-toolbar__title">DMC 445</strong>
+            <span class="brand-pill">Atelier</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compositor-Only Non-Warping Clip-Path Shape Switcher -->
+      <div class="shape-seg-shell">
+        <div class="shape-switch" id="shapeSwitchRow" role="tablist" aria-label="默认钻型">
+          <button id="btnShapeRound" class="shape-switch__btn" data-shape="round" role="tab" aria-selected="true" tabindex="0" type="button">
+            <span class="icon-slot" data-icon="round" data-size="13"></span>
+            <span>圆钻 26切面</span>
+          </button>
+          <button id="btnShapeSquare" class="shape-switch__btn" data-shape="square" role="tab" aria-selected="false" tabindex="-1" type="button">
+            <span class="icon-slot" data-icon="square" data-size="13"></span>
+            <span>方钻 25切面</span>
+          </button>
+          <div class="shape-switch__overlay" id="shapeSwitchOverlay" aria-hidden="true">
+            <span><span class="icon-slot" data-icon="round" data-size="13"></span><span>圆钻 26切面</span></span>
+            <span><span class="icon-slot" data-icon="square" data-size="13"></span><span>方钻 25切面</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sim-toolbar__right">
+        <label class="color-match-pill topbar-tool-pill" id="colorMatchTrigger" title="选取任意颜色，按感知色差 ΔE 匹配最接近的 DMC 色号">
+          <input type="color" id="inputColorMatch" class="color-match-pill__native" value="#ff6a3d" aria-label="取色匹配最接近 DMC 色号" />
+          <span class="color-match-pill__dot" id="colorMatchDot" style="background:#ff6a3d" aria-hidden="true"></span>
+          <span>取色</span>
+        </label>
+
+        <button class="bom-open-btn topbar-tool-pill" id="btnOpenPhotoModal" type="button" title="上传画稿/图片，本地量化提取 Top 8 DMC 445 配钻方案">
+          <span>图片配钻</span>
+        </button>
+
+        <button class="bom-open-btn topbar-tool-pill" id="btnOpenBomModal" type="button" title="粘贴多色号配钻清单">
+          <span>导入清单</span>
+        </button>
+
+        <button id="btnOpenCmdk" class="cmdk-trigger" type="button" aria-label="打开命令面板">
+          <span class="icon-slot" data-icon="search" data-size="13"></span>
+          <span class="cmdk-trigger__label">速查</span>
+          <kbd class="kbd-chip tabular">⌘K</kbd>
+        </button>
+
+        <button id="btnOpenShortcuts" class="shortcuts-trigger" type="button" title="快捷键速查 (?)" aria-label="快捷键速查">
+          <span class="tabular">?</span>
+        </button>
+
+        <div class="sim-mode-group" role="group" aria-label="预览模式">
+          <button id="btnModeGallery" class="sim-mode-btn sim-mode-btn--active" aria-pressed="true" type="button">
+            <span class="icon-slot" data-icon="monitor" data-size="13"></span>
+            <span>工坊</span>
+          </button>
+          <button id="btnModeWechat" class="sim-mode-btn" aria-pressed="false" type="button">
+            <span class="icon-slot" data-icon="phone" data-size="13"></span>
+            <span>小程序</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="sim-stage">
+      <div class="wechat-shell" id="appShell">
+        <!-- WeChat Mini-Program Native Status Header (visible in phone simulator mode) -->
+        <div class="wx-status-bar">
+          <span class="wx-status-bar__time tabular">09:41</span>
+          <div class="wx-status-bar__title">DMC 445 光学钻店</div>
+          <div class="wx-capsule" aria-hidden="true">
+            <span class="wx-capsule__dots">•••</span>
+            <span class="wx-capsule__divider"></span>
+            <span class="wx-capsule__circle">◎</span>
+          </div>
+        </div>
+
+        <div class="mp-scroll" id="mpScroll">
+          <!-- ★ HERO CENTERPIECE: Inspira SVG Path Marquee Interactive Diamond Ribbon ★ -->
+          <section class="marquee-hero" id="marqueeHero" aria-label="SVG 路径跑马灯循轨选钻舞台">
+            <div class="marquee-hero__ambient" id="marqueeAmbientGlow" aria-hidden="true"></div>
+
+            <div class="marquee-hero__header">
+              <div class="marquee-hero__identity">
+                <span class="marquee-hero__dot" id="marqueeActiveDot" aria-hidden="true"></span>
+                <span class="marquee-hero__code tabular" id="marqueeActiveCode">#150</span>
+                <span class="marquee-hero__status" id="marqueeStatusText">悬停减速 · 拖拽循轨选钻</span>
+              </div>
+
+              <div class="marquee-hero__controls">
+                <div class="marquee-curve-pills" id="marqueeCurvePills" role="group" aria-label="跑马灯路径形态">
+                  <button class="marquee-pill marquee-pill--active" data-curve="loop" aria-pressed="true" type="button">经典回环</button>
+                  <button class="marquee-pill" data-curve="wave" aria-pressed="false" type="button">丝带波浪</button>
+                  <button class="marquee-pill" data-curve="infinity" aria-pressed="false" type="button">无限光环</button>
+                </div>
+                <div class="marquee-util-pills">
+                  <button class="marquee-pill" id="btnMarqueeShuffle" type="button" title="切换下一组色带在轨道巡游">换一批</button>
+                  <button class="marquee-pill marquee-pill--active" id="btnMarqueeShowPath" aria-pressed="true" type="button" title="显示或隐藏流金引导轨迹">轨道线</button>
+                  <button class="marquee-pill" id="btnMarqueePause" aria-pressed="false" type="button" title="暂停或恢复沿路径流动">暂停</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Inspira UI PathMarquee Viewport -->
+            <div class="marquee-hero__viewport" id="diamondPathMarquee" role="region" aria-label="可拖拽悬停减速的晶钻路径跑马灯"></div>
+
+            <!-- Chromatic Jewel Ribbon Dock -->
+            <div class="marquee-hero__footer">
+              <div class="groups-bar" id="groupsBar" role="group" aria-label="色系轨道与收藏筛选"></div>
+              <span class="marquee-hero__hint" id="marqueeHintText">单击晶钻锁定检视 · 双击快速加购</span>
+            </div>
+          </section>
+
+          <!-- ★ EDITORIAL 2-COLUMN SELECTED DIAMOND ATELIER STAGE ★ -->
+          <div class="atelier-container">
+            <section class="loupe-dock" id="loupeDock" aria-label="60fps 3D 光学放大镜与规格下单台">
+              <!-- Left Column: 60fps 3D Optical Chamber -->
+              <div class="loupe-stage" id="loupeStage">
+                <div class="loupe-stage__hud">
+                  <div class="studio-hud-pills" id="loupeViewPills" role="group" aria-label="检视视角">
+                    <button class="studio-hud-pill studio-hud-pill--active" data-view="single" aria-pressed="true" type="button">单钻</button>
+                    <button class="studio-hud-pill" data-view="dual" aria-pressed="false" type="button">方圆</button>
+                    <button class="studio-hud-pill" data-view="compare" aria-pressed="false" type="button">双色对比</button>
+                    <button class="studio-hud-pill" data-view="matrix" aria-pressed="false" type="button">5×5阵盘</button>
+                  </div>
+                  <div class="loupe-stage__hud-right">
+                    <div class="studio-bg-dots" id="loupeBgDots" role="group" aria-label="舞台底色">
+                      <button class="studio-bg-dot studio-bg-dot--active" style="background:#0d0f14" data-bg="#181b26" aria-pressed="true" type="button" title="黑曜石绒底" aria-label="黑曜石绒底"></button>
+                      <button class="studio-bg-dot" style="background:#f5f2eb" data-bg="#f5f2eb" aria-pressed="false" type="button" title="暖象牙绒底" aria-label="暖象牙绒底"></button>
+                      <button class="studio-bg-dot" style="background:#ffffff" data-bg="#ffffff" aria-pressed="false" type="button" title="纯白灯箱" aria-label="纯白灯箱"></button>
+                    </div>
+                    <button class="loupe-expand-btn" id="btnHeroStudio" type="button">全屏检视</button>
+                  </div>
+                </div>
+
+                <div class="loupe-compare-strip tabular" id="loupeCompareStrip" hidden>
+                  <span id="loupeCompareLabel">#150 vs #917 · ΔE 7.4</span>
+                  <div class="loupe-compare-actions">
+                    <button class="loupe-compare-swap" id="btnPickCompareMode" aria-pressed="false" type="button" title="开启后点击色库任意卡片将设为右侧对比色（桌面端也可直接 Shift+点击）">点选右侧</button>
+                    <button class="loupe-compare-swap" id="btnSwapCompare" type="button">互换</button>
+                  </div>
+                </div>
+
+                <div class="loupe-compare-strip loupe-matrix-strip tabular" id="loupeMatrixStrip" hidden>
+                  <div class="studio-hud-pills" id="loupeMatrixPatternPills" role="group" aria-label="阵盘拼贴模式">
+                    <button class="studio-hud-pill studio-hud-pill--active" data-mpat="solid" aria-pressed="true" type="button">单色满铺</button>
+                    <button class="studio-hud-pill" data-mpat="gradient" aria-pressed="false" type="button">临近渐变</button>
+                    <button class="studio-hud-pill" data-mpat="cart" aria-pressed="false" type="button">购物车混拼</button>
+                  </div>
+                  <div class="matrix-dots-legend" id="loupeMatrixDots" aria-hidden="true"></div>
+                </div>
+
+                <div class="loupe-canvas-wrap" id="hero3dViewport" title="拖动旋转（含惯性滑行）· 滚轮缩放">
+                  <canvas id="loupeCanvas3D" class="loupe-canvas" width="520" height="310"></canvas>
+                </div>
+
+                <div class="loupe-stage__fx">
+                  <div class="studio-hud-pills" id="loupeLightFxPills" role="group" aria-label="光学灯光">
+                    <button class="studio-hud-pill studio-hud-pill--active" data-fx="none" aria-pressed="true" type="button">恒光</button>
+                    <button class="studio-hud-pill" data-fx="goldSweep" aria-pressed="false" type="button">扫光</button>
+                    <button class="studio-hud-pill" data-fx="auroraPrism" aria-pressed="false" type="button">极光</button>
+                    <button class="studio-hud-pill" data-fx="twinStage" aria-pressed="false" type="button">双星</button>
+                  </div>
+                  <div class="studio-stage__footer-actions">
+                    <button class="studio-stage__spin" id="btnLoupeSymbol" aria-pressed="false" type="button" hidden>符号</button>
+                    <button class="studio-stage__spin" id="btnLoupeAutoSpin" aria-pressed="false" type="button">
+                      <span class="icon-slot" data-icon="rotate" data-size="11"></span>
+                      <span>自旋</span>
+                    </button>
+                    <button class="studio-stage__reset" id="btnLoupeReset" type="button">复位</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Serene Spec, Finish & Ordering Card -->
+              <div class="loupe-spec-col">
+                <div class="loupe-dock__head">
+                  <div class="loupe-code-group">
+                    <span class="hero-color-dot" id="heroColorDot" aria-hidden="true"></span>
+                    <div class="loupe-title-stack">
+                      <div class="loupe-title-line">
+                        <h1 class="loupe-code-title tabular" id="heroTitle">#150</h1>
+                        <span class="loupe-hex-tag tabular" id="heroHexTag">#AB2C52</span>
+                        <span class="loupe-zoom-tag tabular" id="loupeZoomTag">1.00x</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="loupe-nav-actions">
+                    <button class="studio-modal__nav-btn" id="btnLoupePrev" type="button" title="上一色 (←)" aria-label="上一色">
+                      <span class="icon-slot" data-icon="chevLeft" data-size="13"></span>
+                    </button>
+                    <button class="studio-modal__nav-btn" id="btnHeroRandom" type="button" title="随机色" aria-label="随机色">
+                      <span class="icon-slot" data-icon="dice" data-size="13"></span>
+                    </button>
+                    <button class="studio-modal__nav-btn" id="btnLoupeNext" type="button" title="下一色 (→)" aria-label="下一色">
+                      <span class="icon-slot" data-icon="chevRight" data-size="13"></span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Optical Telemetry, Finish & Closest DMC Neighbors -->
+                <div class="loupe-telemetry">
+                  <div class="loupe-metrics tabular" id="loupeMetrics">
+                    <div class="loupe-metric">
+                      <span>明度</span>
+                      <strong id="metricLight">42%</strong>
+                    </div>
+                    <div class="loupe-metric">
+                      <span>单价 / 100g</span>
+                      <strong id="metricPrice">¥12.80</strong>
+                    </div>
+                    <div class="loupe-metric">
+                      <span>约颗数</span>
+                      <strong id="metricBeads">1.65万</strong>
+                    </div>
+                  </div>
+
+                  <div class="loupe-finish-block">
+                    <span class="loupe-neighbors__label">钻面工艺</span>
+                    <div class="studio-hud-pills" id="heroFinishPills" role="group" aria-label="钻面工艺">
+                      <button class="hero-finish-pill hero-finish-pill--active" data-finish="resin" aria-pressed="true" type="button">普通</button>
+                      <button class="hero-finish-pill" data-finish="ab" aria-pressed="false" type="button">AB</button>
+                      <button class="hero-finish-pill" data-finish="fairy" aria-pressed="false" type="button">仙尘</button>
+                      <button class="hero-finish-pill" data-finish="crystal" aria-pressed="false" type="button">水晶</button>
+                      <button class="hero-finish-pill" data-finish="chameleon" aria-pressed="false" type="button">炫彩</button>
+                      <button class="hero-finish-pill" data-finish="glow" aria-pressed="false" type="button">夜光</button>
+                    </div>
+                  </div>
+
+                  <div class="loupe-neighbors">
+                    <span class="loupe-neighbors__label">临近替补色</span>
+                    <div class="loupe-neighbors__list" id="loupeNeighborsList"></div>
+                  </div>
+                  <div class="loupe-neighbors" id="loupeRecentRow" hidden>
+                    <span class="loupe-neighbors__label">最近检视</span>
+                    <div class="loupe-neighbors__list" id="loupeRecentList"></div>
+                  </div>
+                </div>
+
+                <!-- Ordering Plinth -->
+                <div class="loupe-dock__controls">
+                  <div class="loupe-controls-head">
+                    <span class="loupe-controls-head__label">克重选择 (100g 起购)</span>
+                    <button class="loupe-calc-trigger" id="btnOpenCalc" type="button" title="按画布尺寸与色块占比自动估算颗数与克重 (G)">
+                      <span>画布算钻器</span>
+                    </button>
+                  </div>
+                  <div class="loupe-weight-row" id="loupeWeightBar" role="group" aria-label="单色加购克重">
+                    <button class="loupe-w-btn loupe-w-btn--active" data-weight="100" aria-pressed="true" type="button">100g</button>
+                    <button class="loupe-w-btn" data-weight="200" aria-pressed="false" type="button">200g</button>
+                    <button class="loupe-w-btn" data-weight="300" aria-pressed="false" type="button">300g</button>
+                    <button class="loupe-w-btn" data-weight="500" aria-pressed="false" type="button">500g</button>
+                    <button class="loupe-w-btn" data-weight="1000" aria-pressed="false" type="button">1000g</button>
+                  </div>
+                  <div class="loupe-dock__cta-row">
+                    <button class="loupe-step-btn" id="btnLoupeMinus" type="button">-100g</button>
+                    <input id="inputLoupeWeight" class="loupe-weight-input tabular" type="number" min="100" step="100" value="100" aria-label="克重" />
+                    <button class="loupe-step-btn" id="btnLoupePlus" type="button">+100g</button>
+                    <button class="loupe-add-btn tabular" id="btnHeroQuickAdd" type="button">+ 100g · ¥12.80</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ★ SERENE 445 COLOR ARCHIVE (Obsidian Velvet Gallery) ★ -->
+            <section class="archive-section" aria-label="DMC 445 完整色库">
+              <nav class="nav-shell" aria-label="色库检索与排序">
+                <div class="search-filter-row">
+                  <div class="search-box">
+                    <span class="search-box__icon" aria-hidden="true"><span class="icon-slot" data-icon="search" data-size="14"></span></span>
+                    <input
+                      id="searchInput"
+                      class="search-box__input"
+                      type="search"
+                      placeholder="检索色号或粘贴清单 (如 310 5200:200 666:300)"
+                      aria-label="搜索 DMC 色号或多色号配钻清单"
+                      autocomplete="off"
+                    />
+                    <kbd class="search-keycap" id="searchKeycap" aria-hidden="true">/</kbd>
+                    <button id="btnClearSearch" class="search-box__clear" type="button" aria-label="清空搜索" hidden>
+                      <span class="icon-slot" data-icon="close" data-size="12"></span>
+                    </button>
+                  </div>
+
+                  <button class="batch-add-btn" id="btnBatchAddMatched" type="button" hidden>
+                    <span>+ 批量加购</span>
+                  </button>
+
+                  <div class="weight-preset-bar" id="quickWeightBar" role="group" aria-label="默认加购克重">
+                    <button class="weight-chip weight-chip--active" data-weight="100" aria-pressed="true" type="button">100g</button>
+                    <button class="weight-chip" data-weight="200" aria-pressed="false" type="button">200g</button>
+                    <button class="weight-chip" data-weight="300" aria-pressed="false" type="button">300g</button>
+                    <button class="weight-chip" data-weight="500" aria-pressed="false" type="button">500g</button>
+                    <button class="weight-chip" data-weight="1000" aria-pressed="false" type="button">1000g</button>
+                  </div>
+                </div>
+
+                <div class="range-jump-row" id="rangeJumpRow" role="group" aria-label="色号区间跳转">
+                  <div class="range-chips-scroll">
+                    <button class="range-chip range-chip--active" data-range="all" aria-pressed="true" type="button">全部 445</button>
+                    <button class="range-chip" data-range="150-399" aria-pressed="false" type="button">150–399</button>
+                    <button class="range-chip" data-range="400-699" aria-pressed="false" type="button">400–699</button>
+                    <button class="range-chip" data-range="700-899" aria-pressed="false" type="button">700–899</button>
+                    <button class="range-chip" data-range="900-999" aria-pressed="false" type="button">900–999</button>
+                    <button class="range-chip" data-range="3000+" aria-pressed="false" type="button">3000+</button>
+                  </div>
+                  <div class="range-meta-right">
+                    <div class="density-switch" id="gridDensitySwitch" role="group" aria-label="色卡视图密度">
+                      <button class="density-btn density-btn--active" data-density="comfort" aria-pressed="true" type="button" title="舒适 6列卡片">舒适</button>
+                      <button class="density-btn" data-density="compact" aria-pressed="false" type="button" title="紧凑 8列速览">紧凑</button>
+                      <button class="density-btn" data-density="list" aria-pressed="false" type="button" title="规格清单行视图">清单</button>
+                    </div>
+                    <select id="catalogSortSelect" class="sort-select tabular" aria-label="色号排序方式">
+                      <option value="seq">默认编号</option>
+                      <option value="hue">色相彩虹</option>
+                      <option value="lightDesc">明度 亮→暗</option>
+                      <option value="lightAsc">明度 暗→亮</option>
+                      <option value="priceAsc">单价 低→高</option>
+                    </select>
+                    <span class="range-count-label tabular" id="filterCountLabel" aria-live="polite">445 色</span>
+                    <button class="mobile-loupe-toggle" id="btnToggleMobileLoupe" type="button" aria-expanded="true">
+                      <span>收起放大镜</span>
+                    </button>
+                  </div>
+                </div>
+              </nav>
+
+              <div class="workbench-main">
+                <div class="color-match-banner" id="colorMatchBanner" hidden>
+                  <div class="color-match-banner__left">
+                    <span class="color-match-banner__swatch" id="colorMatchBannerDot" aria-hidden="true"></span>
+                    <span class="color-match-banner__title">取色匹配</span>
+                    <input type="text" id="inputColorMatchHex" class="color-match-banner__hex tabular" maxlength="7" value="#FF6A3D" aria-label="目标十六进制颜色代码" />
+                    <span class="color-match-banner__note tabular">Top 12 · 按感知色差 ΔE 排序</span>
+                  </div>
+                  <button class="color-match-banner__clear" id="btnClearColorMatch" type="button">退出取色</button>
+                </div>
+                <div class="cards-grid" id="cardsGrid" aria-label="DMC 445 色号库"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- Truly Viewport-Pinned Obsidian Floating Cart Dock with Odometer -->
+        <div class="cart-dock" id="cartDock" role="region" aria-label="配钻购物车悬浮栏">
+          <button class="cart-dock__main" id="cartDockToggle" type="button" aria-label="展开购物车详情">
+            <div class="cart-dock__gem-wrap">
+              <div id="cartDockGemMount" class="cart-dock__gem-mount" aria-hidden="true"></div>
+              <span class="cart-dock__badge tabular" id="cartBadge">3</span>
+            </div>
+            <div class="cart-dock__brief-col">
+              <div class="cart-dock__price-row">
+                <span class="cart-dock__price tabular" id="cartDockPrice" aria-hidden="true">¥45.20</span>
+                <span class="sr-only" id="cartDockPriceSr" aria-live="polite">当前购物车总计 ¥45.20</span>
+                <span class="cart-dock__weight-pill tabular" id="cartDockWeightPill">3色 · 400g</span>
+              </div>
+              <div class="cart-dock__brief-line tabular" id="cartDockBriefLine">
+                圆钻2 / 方钻1 · 约6.87万颗
+              </div>
+            </div>
+          </button>
+          <div class="cart-dock__actions">
+            <button class="cart-dock__btn cart-dock__btn--brief" id="btnDockOpenBrief" type="button">购物车</button>
+            <button class="cart-dock__btn cart-dock__btn--pay" id="btnDockCheckout" type="button">去结算</button>
+          </div>
+        </div>
+
+        <div class="flying-gem-layer" id="flyingGemLayer" aria-hidden="true"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Fullscreen 3D Optical Studio Modal -->
+  <div class="modal-mask" id="studioModalMask" hidden>
+    <div class="studio-modal" role="dialog" aria-modal="true" aria-labelledby="studioModalTitle">
+      <div class="studio-modal__header" id="studioModalHeader">
+        <div class="studio-modal__header-glass">
+          <div class="studio-header-left">
+            <span class="swatch-dot" id="studioHeaderDot" aria-hidden="true"></span>
+            <strong class="studio-modal__title tabular" id="studioModalTitle">#150</strong>
+            <span class="studio-modal__hex tabular" id="studioModalHex">#AB2C52</span>
+          </div>
+          <div class="studio-modal__header-actions">
+            <button class="studio-modal__nav-btn" id="btnStudioPrev" type="button" title="上一色" aria-label="上一色">
+              <span class="icon-slot" data-icon="chevLeft" data-size="14"></span>
+            </button>
+            <button class="studio-modal__nav-btn" id="btnStudioRandom" type="button" title="随机色" aria-label="随机色">
+              <span class="icon-slot" data-icon="dice" data-size="14"></span>
+            </button>
+            <button class="studio-modal__nav-btn" id="btnStudioNext" type="button" title="下一色" aria-label="下一色">
+              <span class="icon-slot" data-icon="chevRight" data-size="14"></span>
+            </button>
+            <button class="studio-modal__close" id="btnCloseStudio" type="button" title="关闭 (Esc)" aria-label="关闭 3D 工作室">
+              <span class="icon-slot" data-icon="close" data-size="14"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="studio-stage" id="studioStage">
+        <div class="studio-stage__hud">
+          <div class="studio-hud-pills" id="studioViewModePills" role="group" aria-label="工作室检视视角">
+            <button class="studio-hud-pill studio-hud-pill--active" data-mode="single" aria-pressed="true" type="button">单钻 3D</button>
+            <button class="studio-hud-pill" data-mode="dual" aria-pressed="false" type="button">方圆同台</button>
+            <button class="studio-hud-pill" data-mode="compare" aria-pressed="false" type="button">双色对比</button>
+            <button class="studio-hud-pill" data-mode="matrix" aria-pressed="false" type="button">5×5 阵盘</button>
+          </div>
+          <div class="studio-hud-pills" id="studioFinishPills" role="group" aria-label="工作室钻面工艺">
+            <button class="studio-hud-pill studio-hud-pill--active" data-finish="resin" aria-pressed="true" type="button">普通</button>
+            <button class="studio-hud-pill" data-finish="ab" aria-pressed="false" type="button">AB</button>
+            <button class="studio-hud-pill" data-finish="fairy" aria-pressed="false" type="button">仙尘</button>
+            <button class="studio-hud-pill" data-finish="crystal" aria-pressed="false" type="button">水晶</button>
+            <button class="studio-hud-pill" data-finish="chameleon" aria-pressed="false" type="button">炫彩</button>
+            <button class="studio-hud-pill" data-finish="glow" aria-pressed="false" type="button">夜光</button>
+          </div>
+        </div>
+
+        <div class="loupe-compare-strip tabular" id="studioCompareStrip" hidden>
+          <span id="studioCompareLabel">#150 vs #917 · ΔE 7.4</span>
+          <button class="loupe-compare-swap" id="btnStudioSwapCompare" type="button">互换主色</button>
+        </div>
+
+        <div class="loupe-compare-strip loupe-matrix-strip tabular" id="studioMatrixStrip" hidden>
+          <div class="studio-hud-pills" id="studioMatrixPatternPills" role="group" aria-label="工作室阵盘拼贴模式">
+            <button class="studio-hud-pill studio-hud-pill--active" data-mpat="solid" aria-pressed="true" type="button">单色满铺</button>
+            <button class="studio-hud-pill" data-mpat="gradient" aria-pressed="false" type="button">临近渐变</button>
+            <button class="studio-hud-pill" data-mpat="cart" aria-pressed="false" type="button">购物车混拼</button>
+          </div>
+          <div class="matrix-dots-legend" id="studioMatrixDots" aria-hidden="true"></div>
+        </div>
+
+        <div class="studio-canvas-shell">
+          <canvas id="studioCanvas3D" class="studio-canvas-3d" width="520" height="280"></canvas>
+        </div>
+
+        <div class="studio-stage__footer">
+          <div class="studio-stage__footer-left">
+            <div class="studio-bg-dots" id="studioBgDots" role="group" aria-label="工作室舞台底色">
+              <button class="studio-bg-dot studio-bg-dot--active" style="background:#181b26" data-bg="#181b26" aria-pressed="true" type="button" title="深邃黑底" aria-label="深邃黑底"></button>
+              <button class="studio-bg-dot" style="background:#f5f2eb" data-bg="#f5f2eb" aria-pressed="false" type="button" title="暖米画布" aria-label="暖米画布"></button>
+              <button class="studio-bg-dot" style="background:#ffffff" data-bg="#ffffff" aria-pressed="false" type="button" title="纯白画布" aria-label="纯白画布"></button>
+            </div>
+            <div class="studio-hud-pills" id="studioLightFxPills" role="group" aria-label="工作室光学灯光">
+              <button class="studio-hud-pill studio-hud-pill--active" data-fx="none" aria-pressed="true" type="button">恒光</button>
+              <button class="studio-hud-pill" data-fx="goldSweep" aria-pressed="false" type="button">扫光</button>
+              <button class="studio-hud-pill" data-fx="auroraPrism" aria-pressed="false" type="button">极光</button>
+              <button class="studio-hud-pill" data-fx="twinStage" aria-pressed="false" type="button">双星</button>
+            </div>
+          </div>
+          <div class="studio-stage__footer-actions">
+            <button class="studio-stage__spin" id="btnStudioSymbolMode" aria-pressed="false" type="button" hidden>符号底图</button>
+            <button class="studio-stage__spin" id="btnStudioSweep" aria-pressed="false" type="button">
+              <span class="icon-slot" data-icon="sweep" data-size="12"></span>
+              <span>单次扫光</span>
+            </button>
+            <button class="studio-stage__spin" id="btnStudioAutoSpin" aria-pressed="false" type="button">
+              <span class="icon-slot" data-icon="rotate" data-size="12"></span>
+              <span>自旋</span>
+            </button>
+            <button class="studio-stage__reset" id="btnResetStudioAngle" type="button">复位</button>
+            <button class="studio-stage__export" id="btnStudioExportPng" type="button" title="生成并预览高清 1200×800 3D 光学色卡 PNG">生成色卡</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="studio-modal__body">
+        <div class="studio-shape-grid" role="group" aria-label="工作室钻型选择">
+          <button class="studio-shape-option studio-shape-option--active" id="btnStudioShapeRound" data-shape="round" aria-pressed="true" type="button">
+            <span class="icon-slot" data-icon="round" data-size="14"></span>
+            <span>圆钻 (26切面)</span>
+          </button>
+          <button class="studio-shape-option" id="btnStudioShapeSquare" data-shape="square" aria-pressed="false" type="button">
+            <span class="icon-slot" data-icon="square" data-size="14"></span>
+            <span>方钻 (25切面)</span>
+          </button>
+        </div>
+
+        <div class="studio-weight-presets" id="studioWeightPresets" role="group" aria-label="工作室克重预设">
+          <button class="studio-weight-pill studio-weight-pill--active" data-weight="100" aria-pressed="true" type="button">100g</button>
+          <button class="studio-weight-pill" data-weight="200" aria-pressed="false" type="button">200g</button>
+          <button class="studio-weight-pill" data-weight="300" aria-pressed="false" type="button">300g</button>
+          <button class="studio-weight-pill" data-weight="500" aria-pressed="false" type="button">500g</button>
+          <button class="studio-weight-pill" data-weight="1000" aria-pressed="false" type="button">1000g</button>
+        </div>
+
+        <div class="studio-stepper-row">
+          <button class="stepper-btn" id="btnStudioMinus" type="button">-100g</button>
+          <input id="inputStudioWeight" class="stepper-input tabular" type="number" min="100" step="100" value="100" aria-label="工作室加购克重" />
+          <button class="stepper-btn" id="btnStudioPlus" type="button">+100g</button>
+        </div>
+      </div>
+
+      <div class="studio-modal__footer">
+        <div class="studio-modal__price-box">
+          <span class="studio-modal__price-val tabular" id="studioTotalPrice">¥12.80</span>
+          <span class="studio-modal__price-label tabular" id="studioWeightLabel">100g</span>
+        </div>
+        <button class="studio-modal__add-btn tabular" id="btnConfirmStudioAdd" type="button">+ 100g 加购</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shopping Cart Drawer -->
+  <div class="modal-mask modal-mask--drawer" id="cartDrawerMask" hidden>
+    <div class="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle">
+      <div class="cart-drawer__header">
+        <strong class="cart-drawer__title tabular" id="cartDrawerTitle">购物车 (3色 · 400g)</strong>
+        <div class="cart-drawer__header-actions">
+          <button class="cart-drawer__save" id="btnSaveScheme" type="button">存为方案</button>
+          <button class="cart-drawer__batch-plus" id="btnCartBatchPlus100g" type="button">全车+100g</button>
+          <button class="cart-drawer__clear" id="btnClearCart" type="button" title="长按 700ms 清空购物车">
+            <svg class="hold-ring" viewBox="0 0 18 18" aria-hidden="true">
+              <circle class="hold-ring__track" cx="9" cy="9" r="6.5" />
+              <circle class="hold-ring__arc" id="clearCartArc" cx="9" cy="9" r="6.5" stroke-dasharray="40.84" stroke-dashoffset="40.84" />
+            </svg>
+            <span>长按清空</span>
+          </button>
+          <button class="studio-modal__close studio-modal__close--light" id="btnCloseCartDrawer" type="button" title="关闭" aria-label="关闭购物车">
+            <span class="icon-slot" data-icon="close" data-size="14"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cart-brief-strip tabular" id="cartBriefStrip">
+        圆钻2 / 方钻1 · 共 400g · 约 6.87万 颗 · 单款100g起
+      </div>
+
+      <!-- Bespoke Multi-Color SVG Weight Spectrum Bar -->
+      <div class="cart-ratio-wrap" id="cartRatioWrap">
+        <svg class="spectrum-svg" id="cartSpectrumSvg" viewBox="0 0 520 10" preserveAspectRatio="none" role="img" aria-label="购物车色彩克重占比光谱"></svg>
+      </div>
+
+      <!-- Saved BOM Schemes Strip (visible when >= 1 scheme saved) -->
+      <div class="schemes-strip" id="cartSchemesStrip" hidden>
+        <span class="schemes-strip__label">已存方案</span>
+        <div class="schemes-strip__list" id="cartSchemesList"></div>
+      </div>
+
+      <div class="cart-drawer__body" id="cartListContainer"></div>
+
+      <div class="cart-drawer__footer">
+        <button class="cart-drawer__checkout-btn tabular" id="btnCartCheckout" type="button">
+          去结算 · <span id="cartDrawerTotal">¥45.20</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Receipt & Factory Picking Sheet Modal -->
+  <div class="modal-mask" id="receiptModalMask" hidden>
+    <div class="receipt-modal" role="dialog" aria-modal="true" aria-labelledby="receiptOrderNo">
+      <div class="receipt-modal__header">
+        <div>
+          <strong class="receipt-modal__title" id="receiptOrderNo">配钻捡货清单</strong>
+          <p class="bom-modal__sub tabular" id="receiptOrderSub">DMC 445 · Optical Atelier 生产配钻表</p>
+        </div>
+        <div class="receipt-header-right">
+          <div class="density-switch" id="receiptSortToggle" role="group" aria-label="清单排序">
+            <button class="density-btn density-btn--active" data-rsort="cart" aria-pressed="true" type="button">加购序</button>
+            <button class="density-btn" data-rsort="dmc" aria-pressed="false" type="button">按号捡货</button>
+          </div>
+          <button class="studio-modal__close studio-modal__close--light" id="btnCloseReceiptModal" type="button" title="关闭" aria-label="关闭配钻清单">
+            <span class="icon-slot" data-icon="close" data-size="14"></span>
+          </button>
+        </div>
+      </div>
+      <div class="receipt-spectrum-wrap">
+        <svg class="spectrum-svg" id="receiptSpectrumSvg" viewBox="0 0 440 10" preserveAspectRatio="none" role="img" aria-label="配钻清单色彩克重光谱"></svg>
+        <div class="receipt-breakdown tabular" id="receiptBreakdownStrip">圆钻 2款 · 300g | 方钻 1款 · 100g</div>
+      </div>
+      <div class="receipt-items-scroll tabular" id="receiptItemsList"></div>
+      <div class="receipt-modal__footer">
+        <div class="receipt-total-row tabular">
+          <span id="receiptTotalLabel">共 3 款 · 400g</span>
+          <strong id="receiptTotalVal">¥45.20</strong>
+        </div>
+        <div class="receipt-util-row">
+          <button class="receipt-util-btn" id="btnCopyReceipt" type="button">复制文本</button>
+          <button class="receipt-util-btn" id="btnCopyReceiptMd" type="button">复制 MD</button>
+          <button class="receipt-util-btn" id="btnExportCsv" type="button">导出 CSV</button>
+          <button class="receipt-util-btn" id="btnPrintReceipt" type="button">打印单据</button>
+        </div>
+        <button class="receipt-btn receipt-btn--primary receipt-confirm-full" id="btnConfirmReceiptPay" type="button">确认下单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUB-UI v4.0 ⌘K Command Palette (Event-Lifecycle Law: inert + Tab trap + aria-activedescendant) -->
+  <div class="modal-mask modal-mask--cmdk" id="cmdkModalMask" hidden>
+    <div class="cmdk-dialog" id="cmdkDialog" role="dialog" aria-modal="true" aria-label="DMC 色号与工作台命令面板">
+      <div class="cmdk-input-row">
+        <span class="icon-slot" data-icon="search" data-size="15" aria-hidden="true"></span>
+        <input
+          id="cmdkInput"
+          class="cmdk-input"
+          type="search"
+          placeholder="输入 DMC 色号 (#310)、Hex 或切换工艺 (AB / 炫彩 / 方钻)..."
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="cmdkListbox"
+          autocomplete="off"
+        />
+        <kbd class="kbd-chip">ESC</kbd>
+      </div>
+      <div class="cmdk-list" id="cmdkListbox" role="listbox" aria-label="快捷指令与色号结果"></div>
+      <div class="cmdk-footer tabular">
+        <span>↑↓ 选择 · Enter 执行 · Esc 关闭</span>
+        <span id="cmdkMatchCount">8 项快捷指令</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smart BOM Clipboard Importer Modal -->
+  <div class="modal-mask" id="bomModalMask" hidden>
+    <div class="bom-modal" role="dialog" aria-modal="true" aria-labelledby="bomModalTitle">
+      <div class="receipt-modal__header">
+        <div>
+          <strong class="receipt-modal__title" id="bomModalTitle">智能配钻清单导入 (BOM)</strong>
+          <p class="bom-modal__sub">粘贴 Excel / 文本色号表，自动匹配 DMC 445 与克重（不足 100g 自动向上取整）。</p>
+        </div>
+        <button class="studio-modal__close studio-modal__close--light" id="btnCloseBomModal" type="button" title="关闭" aria-label="关闭清单导入器">
+          <span class="icon-slot" data-icon="close" data-size="14"></span>
+        </button>
+      </div>
+      <div class="bom-modal__body">
+        <div class="bom-input-head">
+          <label for="bomTextarea" class="bom-label">色号与克重清单（每行一条或空格分隔）</label>
+          <button class="bom-sample-btn" id="btnBomFillSample" type="button">填入示例清单</button>
+        </div>
+        <textarea
+          id="bomTextarea"
+          class="bom-textarea tabular"
+          rows="4"
+          placeholder="示例：&#10;310 500g&#10;5200:300&#10;#666 x 200&#10;798, 100"
+        ></textarea>
+        <div class="bom-warn" id="bomWarn" hidden></div>
+        <div class="bom-preview-list tabular" id="bomPreviewList"></div>
+      </div>
+      <div class="receipt-modal__footer">
+        <div class="receipt-total-row tabular">
+          <span id="bomSummaryLabel">等待输入配钻清单</span>
+          <strong id="bomSummaryVal">¥0.00</strong>
+        </div>
+        <div class="bom-modal__actions">
+          <button class="receipt-btn receipt-btn--ghost" id="btnBomClear" type="button">清空输入</button>
+          <button class="receipt-btn receipt-btn--primary" id="btnBomCommit" type="button" disabled>全部加入购物车</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Reference Modal -->
+  <div class="modal-mask" id="shortcutsModalMask" hidden>
+    <div class="shortcuts-modal" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalTitle">
+      <div class="receipt-modal__header">
+        <div>
+          <strong class="receipt-modal__title" id="shortcutsModalTitle">光学工作台快捷键</strong>
+          <p class="bom-modal__sub">全键盘无鼠操作流，兼容桌面端极速选钻与配钻。</p>
+        </div>
+        <button class="studio-modal__close studio-modal__close--light" id="btnCloseShortcuts" type="button" title="关闭" aria-label="关闭快捷键表">
+          <span class="icon-slot" data-icon="close" data-size="14"></span>
+        </button>
+      </div>
+      <div class="shortcuts-grid tabular">
+        <div class="shortcut-row"><span>打开全局色号/指令面板</span><kbd class="kbd-chip">⌘K</kbd></div>
+        <div class="shortcut-row"><span>聚焦顶部搜索 / 清单输入</span><kbd class="kbd-chip">/</kbd></div>
+        <div class="shortcut-row"><span>切换上一色 / 下一色</span><kbd class="kbd-chip">← / →</kbd></div>
+        <div class="shortcut-row"><span>切换圆钻 / 方钻</span><kbd class="kbd-chip">R / S</kbd></div>
+        <div class="shortcut-row"><span>快速切换 6 种光学工艺</span><kbd class="kbd-chip">1 – 6</kbd></div>
+        <div class="shortcut-row"><span>一键加购当前检视色号</span><kbd class="kbd-chip">A</kbd></div>
+        <div class="shortcut-row"><span>开关双色并排光学对比</span><kbd class="kbd-chip">C</kbd></div>
+        <div class="shortcut-row"><span>设任意卡片为右侧对比色</span><kbd class="kbd-chip">Shift+Click</kbd></div>
+        <div class="shortcut-row"><span>打开画布尺寸算钻器</span><kbd class="kbd-chip">G</kbd></div>
+        <div class="shortcut-row"><span>开关 60fps 3D 自动旋转</span><kbd class="kbd-chip">Space</kbd></div>
+        <div class="shortcut-row"><span>关闭弹窗或清空当前搜索</span><kbd class="kbd-chip">Esc</kbd></div>
+        <div class="shortcut-row"><span>打开 / 关闭此快捷键表</span><kbd class="kbd-chip">?</kbd></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Canvas Area & Bead Calculator Modal -->
+  <div class="modal-mask" id="calcModalMask" hidden>
+    <div class="calc-modal" role="dialog" aria-modal="true" aria-labelledby="calcModalTitle">
+      <div class="receipt-modal__header">
+        <div>
+          <strong class="receipt-modal__title" id="calcModalTitle">画布尺寸算钻器 (TIF 格数 / 克重)</strong>
+          <p class="bom-modal__sub" id="calcTargetSub">当前目标色：#150 · 圆钻 (2.8mm 间距)</p>
+        </div>
+        <button class="studio-modal__close studio-modal__close--light" id="btnCloseCalc" type="button" title="关闭" aria-label="关闭画布算钻器">
+          <span class="icon-slot" data-icon="close" data-size="14"></span>
+        </button>
+      </div>
+      <div class="calc-modal__body">
+        <div class="calc-presets" id="calcSizePresets" role="group" aria-label="常用画布尺寸">
+          <button class="calc-preset-btn" data-w="30" data-h="40" aria-pressed="false" type="button">30×40cm</button>
+          <button class="calc-preset-btn calc-preset-btn--active" data-w="40" data-h="50" aria-pressed="true" type="button">40×50cm</button>
+          <button class="calc-preset-btn" data-w="50" data-h="70" aria-pressed="false" type="button">50×70cm</button>
+          <button class="calc-preset-btn" data-w="60" data-h="80" aria-pressed="false" type="button">60×80cm</button>
+          <button class="calc-preset-btn" data-w="80" data-h="120" aria-pressed="false" type="button">80×120cm</button>
+        </div>
+
+        <div class="calc-dims-grid">
+          <label class="calc-field">
+            <span>画布宽 (cm)</span>
+            <input id="inputCalcWidth" class="calc-num-input tabular" type="number" min="10" max="400" step="5" value="40" />
+          </label>
+          <label class="calc-field">
+            <span>画布高 (cm)</span>
+            <input id="inputCalcHeight" class="calc-num-input tabular" type="number" min="10" max="400" step="5" value="50" />
+          </label>
+          <label class="calc-field">
+            <span>补钻余量</span>
+            <select id="selectCalcMargin" class="calc-select tabular">
+              <option value="0">0% 无余量</option>
+              <option value="15" selected>+15% 推荐</option>
+              <option value="25">+25% 充裕</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="calc-coverage-box">
+          <div class="calc-coverage-head">
+            <label for="inputCalcCoverage">该色号占画布面积比</label>
+            <strong class="tabular" id="calcCoverageVal">100% (整幅)</strong>
+          </div>
+          <input id="inputCalcCoverage" class="calc-range" type="range" min="5" max="100" step="5" value="100" />
+          <div class="calc-coverage-marks tabular" aria-hidden="true">
+            <span>5% 点缀</span>
+            <span>25% 主色</span>
+            <span>50% 背景</span>
+            <span>100% 满钻</span>
+          </div>
+        </div>
+
+        <!-- Obsidian Anchor Telemetry Output -->
+        <div class="calc-result-card tabular">
+          <div class="calc-result-cell">
+            <span>TIF 画布格数</span>
+            <strong id="calcGridRes">143 × 179 格</strong>
+          </div>
+          <div class="calc-result-cell">
+            <span>预计需钻 (含余量)</span>
+            <strong id="calcBeadsOut">2.94万 颗</strong>
+          </div>
+          <div class="calc-result-cell">
+            <span>建议备货克重</span>
+            <strong id="calcGramsOut">200g</strong>
+          </div>
+          <div class="calc-result-cell">
+            <span>当前色预计小计</span>
+            <strong id="calcPriceOut">¥25.60</strong>
+          </div>
+        </div>
+      </div>
+      <div class="receipt-modal__footer">
+        <div class="calc-modal__actions">
+          <button class="receipt-btn receipt-btn--ghost" id="btnCalcApplyLoupe" type="button">应用克重到放大镜</button>
+          <button class="receipt-btn receipt-btn--primary tabular" id="btnCalcAddCart" type="button">+ 200g 加入购物车</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-Side Image / Artwork DMC 445 Palette Extractor Modal -->
+  <div class="modal-mask" id="photoModalMask" hidden>
+    <div class="photo-modal" role="dialog" aria-modal="true" aria-labelledby="photoModalTitle">
+      <div class="receipt-modal__header">
+        <div>
+          <strong class="receipt-modal__title" id="photoModalTitle">图片画稿自动配钻 (DMC 445 量化)</strong>
+          <p class="bom-modal__sub">纯本地浏览器像素量化，不上传服务器；自动匹配 Top 8 主导 DMC 色号与面积占比。</p>
+        </div>
+        <button class="studio-modal__close studio-modal__close--light" id="btnClosePhotoModal" type="button" title="关闭" aria-label="关闭图片配钻">
+          <span class="icon-slot" data-icon="close" data-size="14"></span>
+        </button>
+      </div>
+      <div class="photo-modal__body">
+        <div class="photo-upload-row">
+          <label class="photo-dropzone" id="photoDropzone">
+            <input type="file" id="inputPhotoFile" accept="image/png,image/jpeg,image/webp" class="sr-only" />
+            <canvas id="photoPreviewCanvas" class="photo-preview-canvas" width="128" height="96"></canvas>
+            <div class="photo-dropzone__copy">
+              <strong>点击选择或拖入参考画稿</strong>
+              <span>支持 PNG / JPG / WebP · 实时像素级 DMC 映射</span>
+            </div>
+          </label>
+          <div class="photo-samples" id="photoSampleBar" role="group" aria-label="内置画稿示例">
+            <span class="photo-samples__label">快速体验示例画稿</span>
+            <button class="photo-sample-btn" data-sample="sunset" aria-pressed="false" type="button">日落海面</button>
+            <button class="photo-sample-btn" data-sample="botanical" aria-pressed="false" type="button">森系花艺</button>
+            <button class="photo-sample-btn" data-sample="porcelain" aria-pressed="false" type="button">青花瓷韵</button>
+          </div>
+        </div>
+        <svg class="spectrum-svg" id="photoSpectrumSvg" viewBox="0 0 520 10" preserveAspectRatio="none" role="img" aria-label="画稿主导 DMC 色彩占比光谱"></svg>
+        <div class="photo-palette-list tabular" id="photoPaletteList"></div>
+      </div>
+      <div class="receipt-modal__footer">
+        <div class="receipt-total-row tabular">
+          <span id="photoSummaryLabel">选择图片或示例画稿开始量化</span>
+          <strong id="photoSummaryVal">¥0.00</strong>
+        </div>
+        <div class="bom-modal__actions">
+          <button class="receipt-btn receipt-btn--ghost" id="btnPhotoSaveScheme" type="button" disabled>存为配钻方案</button>
+          <button class="receipt-btn receipt-btn--primary" id="btnPhotoCommitCart" type="button" disabled>全部加入购物车</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- High-DPI 3D Optical Swatch Card Preview & Export Modal -->
+  <div class="modal-mask" id="swatchCardModalMask" hidden>
+    <div class="swatch-card-modal" role="dialog" aria-modal="true" aria-labelledby="swatchCardModalTitle">
+      <div class="receipt-modal__header">
+        <div>
+          <strong class="receipt-modal__title" id="swatchCardModalTitle">3D 光学高清色卡预览 (1200×800)</strong>
+          <p class="bom-modal__sub" id="swatchCardModalSub">所见即所得 · 保留当前旋转视角、光学工艺与感知替补色号</p>
+        </div>
+        <button class="studio-modal__close studio-modal__close--light" id="btnCloseSwatchCard" type="button" title="关闭" aria-label="关闭高清色卡预览">
+          <span class="icon-slot" data-icon="close" data-size="14"></span>
+        </button>
+      </div>
+      <div class="swatch-card-modal__body">
+        <img id="swatchCardPreviewImg" class="swatch-card-preview-img" alt="DMC 3D 光学高清色卡预览" />
+      </div>
+      <div class="receipt-modal__footer">
+        <div class="swatch-card-modal__actions">
+          <button class="receipt-btn receipt-btn--ghost" id="btnCopySwatchImg" type="button">复制色卡图片</button>
+          <button class="receipt-btn receipt-btn--primary" id="btnDownloadSwatchPng" type="button">下载高清 PNG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optimistic Undo & Status Toast -->
+  <div class="wx-toast" id="wxToast" role="region" aria-label="操作提示" inert>
+    <span class="wx-toast__msg" id="wxToastMsg">已加入购物车</span>
+    <button class="wx-toast__undo" id="btnToastUndo" type="button" hidden>撤销</button>
+  </div>
+  <div class="sr-only" id="a11yAnnouncer" aria-live="polite"></div>
+
+  <script src="./dmc445.js?v=5.3"></script>
+  <script src="./icons.js?v=5.3"></script>
+  <script src="./diamond3d.js?v=5.3"></script>
+  <script src="./path-marquee.js?v=5.3"></script>
+  <script src="./app.js?v=5.3"></script>
+</body>
+</html>
